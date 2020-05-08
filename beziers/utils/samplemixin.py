@@ -40,24 +40,25 @@ class SampleMixin(object):
       self._sample_lut_cache[key] = lut
     return lut
 
-  def regularSample(self,samples,start=0.0,stop=1.0):
+  def regularSample(self,samples,start=0.0,stop=1.0,use_cache=True):
     """Samples a segment or path a given number of times, returning a list of Point objects,
     but ensuring that the points are regularly distributed along the length
     of the curve. This is an expensive operation because I am a lazy programmer."""
 
-    return [ self.pointAtTime(t) for t in self.regularSampleTValue(samples, start, stop) ]
+    return [ self.pointAtTime(t) for t in self.regularSampleTValue(samples, start, stop, use_cache) ]
 
-  def regularSampleTValue(self,samples,start=0.0,stop=1.0):
+  def regularSampleTValue(self,samples,start=0.0,stop=1.0,use_cache=True):
     """Sometimes you don't want the points, you just want a set of time values (t) which
     represent regular spaced samples along the curve. Use this method to get a list of time
     values instead of Point objects."""
-    # Build LUT; cache needs logic or at least a method to invalidate it.  Currently just set it to None
+    # Build LUT; _sample_lut_cache needs logic or at least a method to invalidate it.  Currently just 
+    # set the whole cache to {} or its items to None.
     #TODO:
     # * adjust each time if outside resonable error.  I think the error threshold should 
     #   be stored in the base calss it it isn't already.
     length = self.length
     if length == 0: return []
-    lut = [ self.self.lengthAtTime(t) for t in trange(samples, start, stop) ]
+    lut = self.sample(samples,start,stop,use_cache)
     desiredLength = 0.0
     rSamples = []
     while desiredLength < length:
