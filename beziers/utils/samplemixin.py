@@ -36,7 +36,7 @@ class SampleMixin(object):
         lut = self._sample_lut_cache[key]
         if lut is not None: return lut
     lut = [ self.pointAtTime(t) for t in trange(samples, start, stop) ]
-    if use_cache:
+    if use_cache is not False:
       self._sample_lut_cache[key] = lut
     return lut
 
