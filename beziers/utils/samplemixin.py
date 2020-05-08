@@ -35,7 +35,7 @@ class SampleMixin(object):
       if key in self._sample_lut_cache:
         lut = self._sample_lut_cache[key]
         if lut is not None: return lut
-    lut = [ self.pointAtTime(t) for t in trange(samples, start, stop) ]
+    lut = tuple( self.pointAtTime(t) for t in trange(samples, start, stop) )
     if use_cache or use_cache is None:
       self._sample_lut_cache[key] = lut
     return lut
@@ -56,20 +56,23 @@ class SampleMixin(object):
     #TODO:
     # * adjust each time if outside resonable error.  I think the error threshold should 
     #   be stored in the base calss it it isn't already.
+    span = float(count)
     length = self.length
     if length == 0: return []
-    lut = self.sample(samples,start,stop,use_cache)
-    desiredLength = 0.0
+    lut = list(self.sample(samples,start,stop,use_cache))
     rSamples = []
-    while desiredLength < length:
-      while len(lut) > 0 and lut[0][1] < desiredLength:
+    for i in range(samples):
+      l_desired = length * lerp(start, stop, i / span)
+      while len(lut) > 0 and lut[0][1] < l_desired:
         lut.pop(0)
       if len(lut) == 0:
         break
       #BAD: lut[0][0] may not be very accurate sometimes, and only slightly accurate often
-      rSamples.append(lut[0][0])
-      desiredLength += length / samples
-    if rSamples[-1] != 1.0:
-      rSamples.append(1.0)
+      t = lut[0][0] + (l_desired - lut[0][1]) / length \
+          if abs(l_desired - lut[0][1]) > self._sample_threshold else \
+          lut[0][0]
+      rSamples.append(t)
+    if len(rSamples) <= count:
+      rSamples.append(stop)
     return rSamples
   
