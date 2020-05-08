@@ -1,5 +1,7 @@
+from helpers import trange
+
 class SampleMixin(object):
-  def sample(self,samples):
+  def sample(self,samples,start=0.0,stop=1.0):
     """Samples a segment or path a given number of times, returning a list of Point objects.
     Remember that for a Bezier path, the points are not guaranteed to be distributed
     at regular intervals along the path. If you want to space your points regularly,
@@ -17,36 +19,26 @@ class SampleMixin(object):
    samples along the length of the curve.
 
     """
-    step = 1.0 / float(samples)
-    t = 0.0
-    samples = []
-    while t <= 1.0:
-      samples.append(self.pointAtTime(t))
-      t += step
-    if t != 1.0:
-      samples.append(self.pointAtTime(1))
-    return samples
+    return [ self.pointAtTime(t) for t in trange(samples, start, stop) ]
 
-  def regularSample(self,samples):
+  def regularSample(self,samples,start=0.0,stop=1.0):
     """Samples a segment or path a given number of times, returning a list of Point objects,
     but ensuring that the points are regularly distributed along the length
     of the curve. This is an expensive operation because I am a lazy programmer."""
 
-    return [ self.pointAtTime(t) for t in self.regularSampleTValue(samples) ]
+    return [ self.pointAtTime(t) for t in self.regularSampleTValue(samples, start, stop) ]
 
-  def regularSampleTValue(self,samples):
+  def regularSampleTValue(self,samples,start=0.0,stop=1.0):
     """Sometimes you don't want the points, you just want a set of time values (t) which
     represent regular spaced samples along the curve. Use this method to get a list of time
     values instead of Point objects."""
     # Build LUT; could cache it *if* we knew when to invalidate
-    lut = []
+    #TODO:
+    # * adjust each time if outside resonable error.  I think the error threshold should 
+    #   be stored in the base calss it it isn't already.
     length = self.length
     if length == 0: return []
-    step = 1.0 / length
-    t = 0
-    while t <= 1.0:
-      lut.append( (t,self.lengthAtTime(t)) ) # Inefficient algorithm but computers are getting faster
-      t += step
+    lut = [ self.self.lengthAtTime(t) for t in trange(samples, start, stop) ]
     desiredLength = 0.0
     rSamples = []
     while desiredLength < length:
@@ -54,6 +46,7 @@ class SampleMixin(object):
         lut.pop(0)
       if len(lut) == 0:
         break
+      #BAD: lut[0][0] may not be very accurate sometimes, and only slightly accurate often
       rSamples.append(lut[0][0])
       desiredLength += length / samples
     if rSamples[-1] != 1.0:
