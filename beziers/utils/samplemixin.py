@@ -2,15 +2,14 @@ from helpers import trange
 
 class SampleMixin(object):
   
-  _sampling_threshold = 1.0
+  _sample_threshold = 1.0
   
   @property
-  def sampling_threshold(self): return self._sampling_threshold
+  def sample_threshold(self): return self._sample_threshold
   
-  @sampling_threshold.setter
-  def sampling_threshold(self, threshold):
-    threshold = float(threshold)
-    self._sampling_threshold = threshold
+  @sample_threshold.setter
+  def sample_threshold(self, threshold):
+    self._sample_threshold = float(threshold)
   
   def sample(self,samples,start=0.0,stop=1.0):
     """Samples a segment or path a given number of times, returning a list of Point objects.
