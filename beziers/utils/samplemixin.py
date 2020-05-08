@@ -1,6 +1,17 @@
 from helpers import trange
 
 class SampleMixin(object):
+  
+  _sampling_threshold = 1.0
+  
+  @property
+  def sampling_threshold(self): return self._sampling_threshold
+  
+  @sampling_threshold.setter
+  def sampling_threshold(self, threshold):
+    threshold = float(threshold)
+    self._sampling_threshold = threshold
+  
   def sample(self,samples,start=0.0,stop=1.0):
     """Samples a segment or path a given number of times, returning a list of Point objects.
     Remember that for a Bezier path, the points are not guaranteed to be distributed
