@@ -3,6 +3,7 @@ from helpers import trange
 class SampleMixin(object):
   
   _sample_threshold = 1.0
+  _sample_lut_cache = {}
   
   @property
   def sample_threshold(self): return self._sample_threshold
@@ -11,7 +12,7 @@ class SampleMixin(object):
   def sample_threshold(self, threshold):
     self._sample_threshold = float(threshold)
   
-  def sample(self,samples,start=0.0,stop=1.0):
+  def sample(self,samples,start=0.0,stop=1.0,use_cache=True):
     """Samples a segment or path a given number of times, returning a list of Point objects.
     Remember that for a Bezier path, the points are not guaranteed to be distributed
     at regular intervals along the path. If you want to space your points regularly,
@@ -29,7 +30,15 @@ class SampleMixin(object):
    samples along the length of the curve.
 
     """
-    return [ self.pointAtTime(t) for t in trange(samples, start, stop) ]
+    if use_cache:
+      key = (samples, start, stop)
+      if key in self._sample_lut_cache:
+        lut = self._sample_lut_cache[key]
+        if lut is not None: return lut
+    lut = [ self.pointAtTime(t) for t in trange(samples, start, stop) ]
+    if use_cache:
+      self._sample_lut_cache[key] = lut
+    return lut
 
   def regularSample(self,samples,start=0.0,stop=1.0):
     """Samples a segment or path a given number of times, returning a list of Point objects,
@@ -42,7 +51,7 @@ class SampleMixin(object):
     """Sometimes you don't want the points, you just want a set of time values (t) which
     represent regular spaced samples along the curve. Use this method to get a list of time
     values instead of Point objects."""
-    # Build LUT; could cache it *if* we knew when to invalidate
+    # Build LUT; cache needs logic or at least a method to invalidate it.  Currently just set it to None
     #TODO:
     # * adjust each time if outside resonable error.  I think the error threshold should 
     #   be stored in the base calss it it isn't already.
