@@ -72,3 +72,4 @@ class SampleMixin(object):
     if rSamples[-1] != 1.0:
       rSamples.append(1.0)
     return rSamples
+  
